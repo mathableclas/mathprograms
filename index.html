@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selector Aleatorio de Números</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            position: relative;
+        }
+
+        #contenido {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #numero {
+            font-size: 4em;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 2px solid #333;
+            border-radius: 10px;
+            width: 100px;
+            text-align: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            margin: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #start {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #stop {
+            background-color: #f44336;
+            color: white;
+        }
+
+        #reset {
+            background-color: #FFC107;
+            color: black;
+        }
+
+        #ok {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        #descartados {
+            margin-top: 20px;
+        }
+
+        #descartados ul {
+            list-style-type: none;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        #descartados li {
+            font-size: 1.2em;
+            margin: 5px;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            background-color: #e0e0e0;
+        }
+
+        #reiniciar-container {
+            position: absolute;
+            bottom: 20px;
+        }
+
+        #input-container {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="contenido">
+        <div id="input-container">
+            <label for="total-numeros">Total de números:</label>
+            <input type="number" id="total-numeros" min="1" value="27">
+            <button id="ok">OK</button>
+        </div>
+        
+        <div id="numero">-</div>
+
+        <div>
+            <button id="start" disabled>Iniciar</button>
+            <button id="stop" disabled>Detener</button>
+        </div>
+
+        <div id="descartados">
+            <h2>Números Seleccionados</h2>
+            <ul id="listaDescartados"></ul>
+        </div>
+    </div>
+
+    <div id="reiniciar-container">
+        <button id="reset">Reiniciar</button>
+    </div>
+
+    <script>
+        let numeros = [];
+        let descartados = [];
+        let intervalo;
+        let numeroActual;
+        let sorteoEnCurso = false;
+
+        function actualizarListaDescartados() {
+            const lista = document.getElementById('listaDescartados');
+            lista.innerHTML = descartados.map(num => `<li>${num}</li>`).join('');
+        }
+
+        function iniciar() {
+            const totalNumeros = parseInt(document.getElementById('total-numeros').value, 10);
+            if (isNaN(totalNumeros) || totalNumeros < 1) {
+                alert('Por favor, ingrese un número válido mayor a 0.');
+                return;
+            }
+            numeros = Array.from({length: totalNumeros}, (_, i) => i + 1);
+            descartados = [];
+            document.getElementById('numero').textContent = '-';
+            actualizarListaDescartados();
+            sorteoEnCurso = false;
+        }
+
+        document.getElementById('ok').addEventListener('click', function() {
+            iniciar();
+            document.getElementById('start').disabled = false; // Habilitar botón "Iniciar"
+            this.disabled = true; // Deshabilitar botón "OK"
+        });
+
+        document.getElementById('start').addEventListener('click', function() {
+            if (numeros.length === 0) {
+                alert('No quedan más números para seleccionar.');
+                return;
+            }
+
+            if (!sorteoEnCurso) {
+                sorteoEnCurso = true;
+                this.disabled = true;
+                document.getElementById('stop').disabled = false;
+                
+                intervalo = setInterval(() => {
+                    numeroActual = numeros[Math.floor(Math.random() * numeros.length)];
+                    document.getElementById('numero').textContent = numeroActual;
+                }, 10); // Se reduce el intervalo a 10 ms para aumentar la velocidad
+            }
+        });
+
+        document.getElementById('stop').addEventListener('click', function() {
+            if (sorteoEnCurso) {
+                clearInterval(intervalo);
+                if (numeroActual !== undefined && !descartados.includes(numeroActual)) {
+                    descartados.push(numeroActual);
+                    numeros = numeros.filter(num => num !== numeroActual);
+                    actualizarListaDescartados();
+                }
+                document.getElementById('start').disabled = false;
+                document.getElementById('stop').disabled = true;
+                sorteoEnCurso = false;
+            }
+        });
+
+        document.getElementById('reset').addEventListener('click', function() {
+            clearInterval(intervalo);
+            document.getElementById('total-numeros').value = 27; // Restablecer valor por defecto
+            document.getElementById('ok').disabled = false; // Habilitar botón OK
+            document.getElementById('start').disabled = true; // Deshabilitar botón "Iniciar"
+            document.getElementById('stop').disabled = true; // Deshabilitar botón "Detener"
+            document.getElementById('numero').textContent = '-';
+            descartados = [];
+            numeros = [];
+            actualizarListaDescartados();
+            sorteoEnCurso = false;
+        });
+
+        // Inicializar al cargar la página
+        iniciar();
+    </script>
+
+</body>
+</html>
